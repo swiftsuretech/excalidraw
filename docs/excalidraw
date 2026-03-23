@@ -1,0 +1,111 @@
+#!/bin/bash
+set -euo pipefail
+
+PROJECT_DIR="/Users/dwhitehouse/education/excalidraw"
+NGINX_SERVERS="/opt/homebrew/etc/nginx/servers"
+NGINX_CONF_PROD="$PROJECT_DIR/docs/nginx/prod.conf"
+NGINX_CONF_DEV="$PROJECT_DIR/docs/nginx/dev.conf"
+ACTIVE_LINK="$NGINX_SERVERS/excalidraw.conf"
+VITE_PID_FILE="/tmp/excalidraw-vite.pid"
+PLIST="/Library/LaunchDaemons/com.excalidraw.local.plist"
+
+nginx_reload() {
+    sudo nginx -s reload 2>/dev/null || sudo nginx
+}
+
+nginx_running() {
+    pgrep -q nginx 2>/dev/null
+}
+
+vite_running() {
+    [ -f "$VITE_PID_FILE" ] && kill -0 "$(cat "$VITE_PID_FILE")" 2>/dev/null
+}
+
+stop_vite() {
+    if vite_running; then
+        kill "$(cat "$VITE_PID_FILE")" 2>/dev/null || true
+        rm -f "$VITE_PID_FILE"
+        echo "Vite stopped."
+    fi
+}
+
+case "${1:-help}" in
+    dev)
+        echo "Starting Vite dev server..."
+        stop_vite
+        cd "$PROJECT_DIR"
+        yarn --cwd excalidraw-app start --host 0.0.0.0 &
+        echo $! > "$VITE_PID_FILE"
+
+        # Wait for Vite to be ready
+        echo "Waiting for Vite on port 5173..."
+        for i in $(seq 1 30); do
+            if curl -s -o /dev/null http://127.0.0.1:5173 2>/dev/null; then
+                break
+            fi
+            sleep 1
+        done
+
+        # Switch nginx to dev proxy
+        ln -sf "$NGINX_CONF_DEV" "$ACTIVE_LINK"
+        nginx_reload
+        echo "Dev mode active: http://excalidraw.local (proxying to Vite HMR)"
+        ;;
+
+    prod)
+        stop_vite
+
+        echo "Building production bundle..."
+        cd "$PROJECT_DIR"
+        yarn build:app
+
+        # Switch nginx to static build
+        ln -sf "$NGINX_CONF_PROD" "$ACTIVE_LINK"
+        nginx_reload
+        echo "Prod mode active: http://excalidraw.local (static build)"
+        ;;
+
+    stop)
+        stop_vite
+        if nginx_running; then
+            sudo nginx -s stop 2>/dev/null || true
+            echo "nginx stopped."
+        fi
+        echo "All services stopped."
+        ;;
+
+    status)
+        echo "=== Excalidraw Local ==="
+        if [ -L "$ACTIVE_LINK" ]; then
+            target=$(readlink "$ACTIVE_LINK")
+            if [[ "$target" == *"dev.conf" ]]; then
+                echo "Mode: dev (Vite proxy)"
+            else
+                echo "Mode: prod (static build)"
+            fi
+        else
+            echo "Mode: not configured (no active nginx config)"
+        fi
+
+        if nginx_running; then
+            echo "nginx: running"
+        else
+            echo "nginx: stopped"
+        fi
+
+        if vite_running; then
+            echo "Vite: running (PID $(cat "$VITE_PID_FILE"))"
+        else
+            echo "Vite: stopped"
+        fi
+        ;;
+
+    help|*)
+        echo "Usage: excalidraw {dev|prod|stop|status}"
+        echo ""
+        echo "  dev     Start Vite dev server with HMR at excalidraw.local"
+        echo "  prod    Build and serve static production bundle"
+        echo "  stop    Stop all services"
+        echo "  status  Show current mode and service status"
+        ;;
+esac
