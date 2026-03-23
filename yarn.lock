@@ -1531,10 +1531,10 @@
   resolved "https://registry.yarnpkg.com/@excalidraw/markdown-to-text/-/markdown-to-text-0.1.2.tgz#1703705e7da608cf478f17bfe96fb295f55a23eb"
   integrity sha512-1nDXBNAojfi3oSFwJswKREkFm5wrSjqay81QlyRv2pkITG/XYB5v+oChENVBQLcxQwX4IUATWvXM5BcaNhPiIg==
 
-"@excalidraw/mermaid-to-excalidraw@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@excalidraw/mermaid-to-excalidraw/-/mermaid-to-excalidraw-2.1.0.tgz#a5b9cf87c3185558cda7f9687d87b9937f452358"
-  integrity sha512-RMd+c2b7WzzUjhERMpKwp8PhF2/XlHDjr/zK+Gxfp8K9sVlafPYJ5OEa/GkN6edi2rBUXRfW+41WdO6L56b6Kw==
+"@excalidraw/mermaid-to-excalidraw@2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@excalidraw/mermaid-to-excalidraw/-/mermaid-to-excalidraw-2.1.1.tgz#659c934a607dd2cf57f2a69282588ee2b0722959"
+  integrity sha512-jU+frqcxazsY+t5yOBf2mgrQy+WUrbrzA36if3SQB/Vwaf2qOJjnWxucNafgZZk/3+9xGmRotUeOviSOJG+wYA==
   dependencies:
     "@excalidraw/markdown-to-text" "0.1.2"
     "@mermaid-js/parser" "^0.6.3"
@@ -3086,6 +3086,11 @@
   version "4.34.9"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.34.9.tgz#363467bc49fd0b1e17075798ac8e9ad1e1e29535"
   integrity sha512-0CY3/K54slrzLDjOA7TOjN1NuLKERBgk9nY5V34mhmuu673YNb+7ghaDUs6N0ujXR7fz5XaS5Aa6d2TNxZd0OQ==
+
+"@rollup/rollup-darwin-arm64@4.60.0":
+  version "4.60.0"
+  resolved "https://registry.yarnpkg.com/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.60.0.tgz#bb200269069acf5c1c4d79ad142524f77e8b8236"
+  integrity sha512-qEF7CsKKzSRc20Ciu2Zw1wRrBz4g56F7r/vRwY430UPp/nt1x21Q/fpJ9N5l47WWvJlkNCPJz3QRVw008fi7yA==
 
 "@rollup/rollup-darwin-x64@4.34.9":
   version "4.34.9"
