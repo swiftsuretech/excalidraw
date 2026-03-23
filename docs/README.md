@@ -72,10 +72,32 @@ Record each modification below as we make changes.
 
 | Date | Change | Files | Notes |
 |------|--------|-------|-------|
-| — | — | — | — |
+| 2026-03-23 | Local dev environment setup | `docs/nginx/`, `docs/excalidraw`, `docs/com.excalidraw.local.plist` | Excalidraw served at `excalidraw.local` via nginx + launchd |
+| 2026-03-23 | Added `@rollup/rollup-darwin-arm64` | `package.json`, `yarn.lock` | Required for Vite builds on macOS ARM when using `--ignore-optional` |
+
+## Local Development Setup
+
+Excalidraw runs permanently at **http://excalidraw.local** (port 80).
+
+```bash
+excalidraw status   # Check current mode
+excalidraw dev      # Switch to dev mode (Vite HMR)
+excalidraw prod     # Rebuild and switch to production mode
+excalidraw stop     # Stop all services
+```
+
+See `docs/superpowers/specs/2026-03-23-local-excalidraw-service-design.md` for full architecture.
 
 ## Lessons Learned
 
-Gotchas, surprises, and non-obvious findings go here as we encounter them.
+### yarn install with `--ignore-optional` breaks rollup native binaries
 
-(None yet — we're just getting started.)
+`yarn install --ignore-optional` skips `@rollup/rollup-darwin-arm64`, which Vite needs for builds. Fix: explicitly add it as a devDependency with `yarn add -W --dev @rollup/rollup-darwin-arm64`.
+
+### nginx worker process permissions on macOS
+
+When nginx runs as root (for port 80), the worker process drops to user `nobody`, which can't read files in your home directory. Fix: add `user dwhitehouse staff;` to `nginx.conf`.
+
+### yarn 1 fetches ALL platform binaries regardless of OS
+
+The lockfile contains ~97 platform-specific packages (esbuild, rollup, @next/swc) for every OS/arch. Yarn 1 downloads all of them sequentially. On slow connections this takes 30+ minutes. Using `--ignore-optional` helps but requires manually adding back the ones you actually need.
