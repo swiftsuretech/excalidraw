@@ -4,10 +4,25 @@
 
 Excalidraw is a **monorepo** with a clear separation between the core library and the application:
 
-- **`packages/excalidraw/`** - Main React component library published to npm as `@excalidraw/excalidraw`
-- **`excalidraw-app/`** - Full-featured web application (excalidraw.com) that uses the library
-- **`packages/`** - Core packages: `@excalidraw/common`, `@excalidraw/element`, `@excalidraw/math`, `@excalidraw/utils`
-- **`examples/`** - Integration examples (NextJS, browser script)
+| Directory | Purpose |
+|-----------|---------|
+| `packages/excalidraw/` | Core React component library (`@excalidraw/excalidraw`) — the editor |
+| `packages/common/` | Shared constants, utils, types (`@excalidraw/common`) |
+| `packages/element/` | Element manipulation — CRUD, arrows, binding, collision (`@excalidraw/element`) |
+| `packages/math/` | Geometry primitives — points, vectors, curves, polygons (`@excalidraw/math`) |
+| `packages/utils/` | Export helpers, shape utils (`@excalidraw/utils`) |
+| `excalidraw-app/` | Web application (excalidraw.com) consuming the library |
+| `dev-docs/` | Public Docusaurus API documentation |
+| `docs/` | Our working notes, modification log, and lessons learned |
+| `examples/` | Integration examples (NextJS, browser script) |
+
+## Key Files
+
+- **`packages/excalidraw/components/App.tsx`** (~12,800 lines) — the core editor class component. Event handling, rendering orchestration, tool logic. Most modifications touch this file.
+- **`packages/excalidraw/index.tsx`** — library entry point, exports `<Excalidraw>` component and hooks
+- **`packages/excalidraw/types.ts`** — `AppState`, `AppProps`, `ExcalidrawImperativeAPI` type definitions
+- **`packages/common/src/constants.ts`** — all shared constants (keys, colors, thresholds, tool types)
+- **`excalidraw-app/App.tsx`** — web app shell (collab, firebase, theming)
 
 ## Development Workflow
 
@@ -19,9 +34,12 @@ Excalidraw is a **monorepo** with a clear separation between the core library an
 ## Development Commands
 
 ```bash
-yarn test:typecheck  # TypeScript type checking
-yarn test:update     # Run all tests (with snapshot updates)
-yarn fix             # Auto-fix formatting and linting issues
+yarn start              # Dev server (excalidraw-app on localhost)
+yarn test:typecheck     # TypeScript type checking
+yarn test:update        # Run all tests with snapshot updates
+yarn test:app           # Run tests in watch mode
+yarn fix                # Auto-fix formatting and linting issues
+yarn build:packages     # Build all packages (order: common -> math -> element -> excalidraw)
 ```
 
 ## Architecture Notes
@@ -32,3 +50,19 @@ yarn fix             # Auto-fix formatting and linting issues
 - Internal packages use path aliases (see `vitest.config.mts`)
 - Build system uses esbuild for packages, Vite for the app
 - TypeScript throughout with strict configuration
+
+### State Management
+
+- **Jotai** for editor-level state (`editor-jotai.ts`, `app-jotai.ts`)
+- `App.tsx` class component holds bulk editor state internally
+- `appState.ts` defines the `AppState` type — scroll, zoom, selected tool, theme, etc.
+
+### Rendering
+
+- **roughjs** for the hand-drawn sketch aesthetic
+- `packages/excalidraw/renderer/` — canvas rendering pipeline
+- `packages/excalidraw/scene/` — element z-ordering and scene graph
+
+## Our Working Notes
+
+See `docs/README.md` for the full modification log, architecture deep-dives, and lessons learned.
