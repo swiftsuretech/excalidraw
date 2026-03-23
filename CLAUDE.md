@@ -63,6 +63,21 @@ yarn build:packages     # Build all packages (order: common -> math -> element -
 - `packages/excalidraw/renderer/` — canvas rendering pipeline
 - `packages/excalidraw/scene/` — element z-ordering and scene graph
 
+## Local Environment
+
+Excalidraw runs permanently at **http://excalidraw.local** (port 80) via nginx + launchd.
+
+```bash
+excalidraw status   # Check current mode (prod/dev)
+excalidraw dev      # Switch to Vite HMR (active development)
+excalidraw prod     # Rebuild and switch to static production build
+excalidraw stop     # Stop all services
+```
+
+- **Prod mode** (default): nginx serves `excalidraw-app/build/` statically. Starts on boot via launchd.
+- **Dev mode**: nginx proxies to Vite on port 5173. Instant HMR at the same URL.
+- **yarn install**: Use `--ignore-optional` to skip ~97 unused platform binaries. `@rollup/rollup-darwin-arm64` is an explicit devDependency to compensate.
+
 ## Our Working Notes
 
 See `docs/README.md` for the full modification log, architecture deep-dives, and lessons learned.

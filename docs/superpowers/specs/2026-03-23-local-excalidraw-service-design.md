@@ -1,7 +1,7 @@
 # Design: Persistent Local Excalidraw Service
 
 **Date**: 2026-03-23
-**Status**: Approved
+**Status**: Implemented
 
 ## Goal
 
@@ -45,9 +45,11 @@ The active config is symlinked into nginx's servers directory. Switching configs
 
 ### 3. launchd plist
 
-`~/Library/LaunchAgents/com.excalidraw.local.plist`
+`/Library/LaunchDaemons/com.excalidraw.local.plist`
 
-- Starts nginx on user login
+- Runs as root (required for port 80 binding)
+- nginx worker drops to `user dwhitehouse staff;` for file access
+- Starts nginx on boot
 - Defaults to prod mode (static build)
 - Restarts on failure via `KeepAlive`
 - No node process running in background by default
@@ -144,15 +146,23 @@ WebSocket headers are required for Vite's HMR connection.
 ```
 docs/
   nginx/
-    prod.conf           # nginx config for static build
-    dev.conf            # nginx config for Vite proxy
-  excalidraw            # CLI script (dev/prod/stop/status)
-  rebuild.sh            # (removed — replaced by `excalidraw prod`)
-~/Library/LaunchAgents/
-  com.excalidraw.local.plist
-/etc/hosts              # 127.0.0.1 excalidraw.local
-/usr/local/bin/excalidraw  # symlink to docs/excalidraw
+    prod.conf                    # nginx config for static build
+    dev.conf                     # nginx config for Vite proxy
+  excalidraw                     # CLI script (dev/prod/stop/status)
+  com.excalidraw.local.plist     # launchd plist (source copy)
+/opt/homebrew/etc/nginx/
+  nginx.conf                     # Cleaned — no default server, includes servers/*
+  servers/excalidraw.conf        # Symlink → docs/nginx/prod.conf (or dev.conf)
+/Library/LaunchDaemons/
+  com.excalidraw.local.plist     # Installed copy (root-owned)
+/etc/hosts                       # 127.0.0.1 excalidraw.local
+/usr/local/bin/excalidraw        # Symlink → docs/excalidraw
 ```
+
+## Implementation Notes
+
+- `yarn install --ignore-optional` required to avoid downloading ~97 unused platform binaries (esbuild, rollup, @next/swc for linux/windows). But this also skips `@rollup/rollup-darwin-arm64`, so it must be added explicitly: `yarn add -W --dev @rollup/rollup-darwin-arm64`.
+- nginx main config (`/opt/homebrew/etc/nginx/nginx.conf`) was stripped of the default port 8080 server block and given `user dwhitehouse staff;` so the worker can read files in the home directory.
 
 ## Not In Scope
 
